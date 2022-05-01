@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+        <meta charset="utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <title>新增/修改流程表单配置字段</title>
+        <style>
+           div,th,td {
+                font-size: 12px;
+           }
+           td a {
+               margin: 0px 2px;
+           }
+        </style>
+    </head>
+    <body>
+        <div id="content">
+            <div id="currentUser" style="color:green;font-weight:bold;font-size:14px;"></div>
+            <div><a id="backTo" href='#'>返回</a></div>
+
+            <div>&nbsp;</div>
+            <div id="info">新增/修改流程表单配置字段</div>
+
+            <div>&nbsp;</div>
+            <div>
+                <form id="flowForm">
+                    ID: <span id="formFieldId"></span><br/>
+                    工单类型(orderType): <span id="orderType"></span><br/>
+                    字段名称(field_name)<font color="red">*</font>: <input type="text" id="fieldName"><br>
+                    字段中文(field_cname)<font color="red">*</font>: <input type="text" id="fieldCname"><br>
+                    字段类型(field_type)<font color="red">*</font>: 
+                    <select id="fieldType" name="fieldType">
+                        <option value ="text">文本框</option>
+                        <option value ="select">下拉列表</option>
+                    </select>
+                    <br>
+                    默认值(default_value): <input type="text" id="defaultValue">默认值，文本框时直接就是配置的值，下拉框时，会对应的对此default_value进行选中.<br>
+                    <br>
+                    其他信息(other_info):<input style="width: 800px" type="text" id="otherInfo"><br>
+                    如字段类型(field_type)为select时的一些附加配置：示例：[{"label":"病假","value":"bingjia"},{"label":"事假","value":"shijia"},{"label":"调休","value":"tiaoxu"}]<br>
+                    <br>
+                    序号(field_order)<font color="red">*</font>: <input type="text" id="fieldOrder"><br>
+                    <input type="button" onclick="addOrEdit();" value="保存">
+                    
+                </form>
+            </div>
+
+        </div>
+        <script src="js/config.js"></script>
+        <script src="js/jquery.min.js"></script>
+        <script type="text/javascript">
+            var contextPath = getContextPath();
+            var userId = getQueryVariable("userId");
+            var id = getQueryVariable("id");
+            var orderType = getQueryVariable("orderType");
+
+            //返回按钮
+            document.getElementById("backTo").href = contextPath + "/flowFormList.html?userId="+userId+"&orderType="+orderType;
+
+            $(function() {
+                //模拟所有参与人员
+                //lix：普通人员
+                //zhaoyl：项目经理
+                //liujh,linjh,huangjc：部门经理
+                //xuw：总经理
+                let arr = ['lix', 'zhaoyl', 'liujh', 'linjh', 'huangjc', 'xuw'];
+                if(!arr.includes(userId)){
+                    alert("未合法的userId，请查看main.html里面的定义.");
+                    return;
+                }
+                //设置当前用户信息：
+                document.getElementById("currentUser").innerHTML = "你是："+userId;
+                document.getElementById("orderType").innerText = orderType;
+
+                //如果id不为空，则加载数据库中的数据进行填充表单
+                if(id!=""){
+                    $.ajax({
+                        url:  window.location.origin + contextPath + '/workFlowFormField/queryById',
+                        data: JSON.stringify({
+                            id: Number(id),
+                        }),
+                        type: 'post',
+                        contentType: 'application/json;charset=utf-8',
+                        dataType: "json",
+                        success: function (res) {
+                            if(res){
+                                var aRow = res;
+                                document.getElementById("formFieldId").innerText = aRow.id;
+                                document.getElementById("orderType").innerText = aRow.orderType;
+                                document.getElementById("fieldName").value = aRow.fieldName;
+                                document.getElementById("fieldCname").value = aRow.fieldCname;
+                                //document.getElementById("fieldType").value = aRow.fieldType;
+                                set_select_checked("fieldType",aRow.fieldType);
+                                document.getElementById("defaultValue").value = aRow.defaultValue;
+                                document.getElementById("otherInfo").value = aRow.otherInfo;
+                                document.getElementById("fieldOrder").value = aRow.fieldOrder;
+                            }
+                        },
+                        error: function (result) {alert("流程加载失败，内部错误.");}
+                    }); 
+                }
+
+            });
+
+            //addOrEdit
+            function addOrEdit(){
+                var id = document.getElementById("formFieldId").innerText;
+                var orderType = document.getElementById("orderType").innerText;
+                var fieldName = document.getElementById("fieldName").value;
+                var fieldCname = document.getElementById("fieldCname").value;
+
+                //fieldType
+                var obj=document.getElementById('fieldType');
+                var index=obj.selectedIndex; //序号，取当前选中选项的序号
+                var fieldType = obj.options[index].value;
+                var defaultValue = document.getElementById("defaultValue").value;
+                var otherInfo = document.getElementById("otherInfo").value;
+                var fieldOrder = document.getElementById("fieldOrder").value;
+
+                if(orderType === ""){
+                    alert("工单类型(order_type)不能为空.");
+                    return;
+                }
+                if(fieldName === ""){
+                    alert("字段名称(field_name)不能为空.");
+                    return;
+                }
+                if(fieldCname === ""){
+                    alert("字段中文(field_cname)不能为空.");
+                    return;
+                }
+                if(fieldType === ""){
+                    alert("字段类型(field_type)不能为空.");
+                    return;
+                }
+                if(fieldOrder === ""){
+                    alert("序号(field_order)不能为空.");
+                    return;
+                }
+                if(id===""){
+
+                    //新增
+                    $.ajax({
+                        url:  window.location.origin + contextPath + '/workFlowFormField/insert',
+                        data: JSON.stringify({
+                            orderType: orderType,
+                            fieldName: fieldName,
+                            fieldCname: fieldCname,
+                            fieldType: fieldType,
+                            defaultValue: defaultValue,
+                            otherInfo: otherInfo,
+                            fieldOrder: fieldOrder
+                        }),
+                        type: 'post',
+                        contentType: 'application/json;charset=utf-8',
+                        dataType: "json",
+                        success: function (res) {
+                            if(res==true){
+                                alert("流程字段配置新增成功");
+                                window.location.href = contextPath + "/flowFormList.html?userId="+userId+"&orderType="+orderType;
+                            }
+                        },
+                        error: function (result) {alert("流程字段配置新增失败，内部错误.");}
+                    });                    
+                }else{
+                    //修改
+                    $.ajax({
+                        url:  window.location.origin + contextPath + '/workFlowFormField/update',
+                        data: JSON.stringify({
+                            id: id,
+                            orderType: orderType,
+                            fieldName: fieldName,
+                            fieldCname: fieldCname,
+                            fieldType: fieldType,
+                            defaultValue: defaultValue,
+                            otherInfo: otherInfo,
+                            fieldOrder: fieldOrder
+                        }),
+                        type: 'post',
+                        contentType: 'application/json;charset=utf-8',
+                        dataType: "json",
+                        success: function (res) {
+                            if(res){
+                                alert("流程字段配置修改成功");
+                                window.location.href = contextPath + "/flowFormList.html?userId="+userId+"&orderType="+orderType;
+                            }
+                        },
+                        error: function (result) {alert("流程字段配置修改失败，内部错误.");}
+                    });  
+                }
+            }
+
+            //获取浏览器地址上的url参数
+            function getQueryVariable(variable){
+                var query = window.location.search.substring(1);
+                var vars = query.split("&");
+                for (var i=0;i<vars.length;i++) {
+                    var pair = vars[i].split("=");
+                    if(pair[0] == variable){return pair[1];}
+                }
+                return "";
+            }
+
+            //设置select选中
+            function set_select_checked(selectId, checkValue){
+                var select = document.getElementById(selectId);
+                for (var i = 0; i < select.options.length; i++){
+                    if (select.options[i].value == checkValue){
+                        select.options[i].selected = true;
+                        break;
+                    }
+                }
+            }
+
+        </script>
+    </body>
+</html>

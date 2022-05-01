@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.gzsendi.flowable.mapper.WorkOrderMapper">
+
+
+	<select id="listMyDeal" parameterType="java.lang.String" resultType="myDealWorkOrderDto" resultSetType="FORWARD_ONLY" fetchSize="-2147483648">
+		select
+		t1.*
+		from work_order t1
+		where t1.`handler` = #{userId} order by t1.application_time desc
+	</select>
+	
+	<select id="listMyApply" parameterType="java.lang.String"  resultType="workOrder" resultSetType="FORWARD_ONLY" fetchSize="-2147483648">
+		select
+		t1.*
+		from work_order t1
+		where t1.`applicant` = #{userId} order by t1.application_time desc
+	</select>
+	
+	<select id="listMyExamAndApprove" parameterType="java.lang.String"  resultType="workOrder" resultSetType="FORWARD_ONLY" fetchSize="-2147483648">
+		select
+		wo.*
+		from work_order wo
+        LEFT JOIN `act_hi_procinst` p ON p.`BUSINESS_KEY_` = wo.`order_id`
+        LEFT JOIN `act_hi_comment` c ON c.`PROC_INST_ID_` = p.`PROC_INST_ID_`
+		where c.`USER_ID_` = #{userId} and  wo.handler != #{userId}
+		GROUP BY
+        wo.order_id,
+        wo.order_type,
+        wo.applicant,
+        wo.application_time,
+        wo.order_status,
+        wo.reason,
+        wo.handler
+        order by wo.application_time desc
+	</select>
+	
+	<select id="queryByOrderId" resultType="workOrder" parameterType="java.lang.String">
+		select
+		*
+		from work_order
+		where order_id = #{orderId}
+	</select>
+	
+	<insert id="insert" parameterType="workOrder" keyProperty="id" useGeneratedKeys="true">
+		insert into work_order(`order_id`,`order_type`,`subject_id`,`subject_type`,`applicant`,`application_time`,`order_summary`,`order_status`,`reason`,`form_data`,`handler`,`remark`,`create_user`,`create_time`,`update_user`,`update_time`) values(#{orderId},#{orderType},#{subjectId},#{subjectType},#{applicant},#{applicationTime},#{orderSummary},#{orderStatus},#{reason},#{formData},#{handler},#{remark},#{createUser},#{createTime},#{updateUser},#{updateTime})
+	</insert>
+
+    <update id="updateWorkOrder" parameterType="workOrder">
+        update work_order
+        <set>
+            <if test="orderType != null">order_type = #{orderType},</if>
+            <!--<if test="subjectId != null">subject_id = #{subjectId},</if>-->
+            <!--<if test="subjectType != null">subject_type = #{subjectType},</if>-->
+            <if test="applicant != null">applicant = #{applicant},</if>
+            <if test="applicationTime != null">application_time = #{applicationTime},</if>
+            <if test="orderStatus != null">order_status = #{orderStatus},</if>
+            <if test="orderSummary != null">order_summary = #{orderSummary},</if>
+            <if test="reason != null">reason = #{reason},</if>
+            <if test="formData != null">form_data = #{formData},</if>
+            <if test="handler != null">handler = #{handler},</if>
+            <if test="updateUser != null">update_user = #{updateUser},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="updateTime == null">update_time = now(),</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        where order_id = #{orderId}
+    </update>
+
+</mapper>

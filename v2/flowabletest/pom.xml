@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>cn.gzsendi</groupId>
+	<artifactId>flowabletest</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.6.2</version>
+		<relativePath /> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>1.8</java.version>
+		<flowable.version>6.7.2</flowable.version>
+		<pagehelper.starter.version>1.4.2</pagehelper.starter.version>
+	</properties>
+
+	<dependencies>
+
+		<!-- spring-boot-starter-web start -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<!-- spring-boot-starter-web end -->
+
+		<!--flowable工作流依赖 start -->
+		<dependency>
+			<groupId>org.flowable</groupId>
+			<artifactId>flowable-spring-boot-starter</artifactId>
+			<version>${flowable.version}</version>
+		</dependency>
+		<!-- 添加flowable-ui-modeler核心依赖项 -->
+		<dependency>
+			<groupId>org.flowable</groupId>
+			<artifactId>flowable-ui-modeler-rest</artifactId>
+			<version>${flowable.version}</version>
+		</dependency>
+		<!--添加flowable-ui-modeler配置依赖项 -->
+		<dependency>
+			<groupId>org.flowable</groupId>
+			<artifactId>flowable-ui-modeler-conf</artifactId>
+			<version>${flowable.version}</version>
+		</dependency>
+		<!--flowable工作流依赖 end -->
+
+		<!-- mybatis start -->
+		<!--pagehelper分页 -->
+		<dependency>
+			<groupId>com.github.pagehelper</groupId>
+			<artifactId>pagehelper-spring-boot-starter</artifactId>
+			<version>${pagehelper.starter.version}</version>
+		</dependency>
+		<!-- druid -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>druid</artifactId>
+			<version>1.1.10</version>
+		</dependency>
+		<!-- mysql jdbc -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.45</version>
+		</dependency>
+		<!-- mybatis end -->
+		
+		<!-- swagger start -->
+		<!-- swagger end -->
+
+	</dependencies>
+
+	<build>
+		<finalName>${artifactId}</finalName>
+		<plugins>
+
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+
+	</build>
+
+</project>

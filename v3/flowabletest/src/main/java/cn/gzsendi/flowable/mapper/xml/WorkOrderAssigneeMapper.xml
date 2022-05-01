@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.gzsendi.flowable.mapper.WorkOrderAssigneeMapper">
+
+    <resultMap id="BaseResultMap" type="cn.gzsendi.flowable.model.po.WorkOrderAssignee">
+        <id column="id" property="id"/>
+        <id column="order_id" property="orderId"/>
+        <id column="assignee_version" property="assigneeVersion"/>
+        <id column="assignee" property="assignee"/>
+        <result column="assignee_order" property="assigneeOrder"/>
+        <result column="task_name" property="taskName"/>
+        <result column="order_status" property="orderStatus"/>
+        <result column="can_cancel_order" property="canCancelOrder"/>
+        <result column="create_user" property="createUser"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_user" property="updateUser"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="remark" property="remark"/>
+    </resultMap>
+
+    <sql id="BASE_COLUMNS">
+        id,order_id, assignee_version, assignee, assignee_order, task_name, order_status, can_cancel_order,
+        create_user, create_time, update_user, update_time, remark
+    </sql>
+
+    <insert id="insert" parameterType="cn.gzsendi.flowable.model.po.WorkOrderAssignee">
+    insert into wo_assignee (
+        order_id, assignee_version, assignee, assignee_order, task_name, order_status,
+        can_cancel_order,create_user, create_time, update_user, update_time, remark
+    ) values (
+        #{orderId}, #{assigneeVersion}, #{assignee}, #{assigneeOrder}, #{taskName}, #{orderStatus},
+        #{canCancelOrder}, #{createUser}, #{createTime}, #{updateUser}, #{updateTime}, #{remark}
+    )
+    </insert>
+
+    <delete id="deleteByPrimaryKey" parameterType="map">
+    delete from wo_assignee
+    where order_id = #{orderId} and assignee_version = #{assigneeVersion} and assignee = #{assignee}
+    </delete>
+
+    <update id="updateByPrimaryKey" parameterType="cn.gzsendi.flowable.model.po.WorkOrderAssignee">
+    update wo_assignee set
+        assignee = #{assignee},
+        assignee_order = #{assigneeOrder},
+        task_name = #{taskName},
+        order_status = #{orderStatus},
+        can_cancel_order = #{canCancelOrder},
+        update_user = #{updateUser},
+        update_time = #{updateTime},
+        remark = #{remark}
+        <where>
+            <choose>
+                <when test="id != null">id = #{id}</when>
+                <otherwise>order_id = #{orderId} and assignee_version = #{assigneeVersion} and assignee = #{assignee}</otherwise>
+            </choose>
+        </where>
+    </update>
+
+    <select id="selectByPrimaryKey" parameterType="map" resultMap="BaseResultMap">
+        select
+        <include refid="BASE_COLUMNS"/>
+        from wo_assignee
+        where order_id = #{orderId} and assignee_version = #{assigneeVersion} and assignee = #{assignee}
+        order by assignee_order
+    </select>
+
+    <select id="listByOrderIdAndVersion" resultMap="BaseResultMap">
+        select
+        <include refid="BASE_COLUMNS"/>
+        from wo_assignee
+        where order_id = #{orderId} and assignee_version = #{assigneeVersion}
+        order by assignee_order
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        select
+        <include refid="BASE_COLUMNS"/>
+        from wo_assignee
+        order by order_id, assignee_version, assignee_order
+    </select>
+
+    <select id="selectSelective" resultMap="BaseResultMap">
+        select
+        <include refid="BASE_COLUMNS"/>
+        from wo_assignee
+        <where>
+            <if test="orderId != null and orderId != ''">and order_id = #{orderId}</if>
+            <if test="assigneeVersion != null">and assignee_version = #{assigneeVersion}</if>
+            <if test="assignee != null and assignee != ''">and assignee = #{assignee}</if>
+            <if test="assigneeOrder != null">and assignee_order = #{assigneeOrder}</if>
+            <if test="taskName != null and taskName != ''">and task_name = #{taskName}</if>
+            <if test="orderStatus != null and orderStatus != ''">and order_status = #{orderStatus}</if>
+            <if test="canCancelOrder != null">and can_cancel_order = #{canCancelOrder}</if>
+            <if test="createUser != null and createUser != ''">and create_user = #{createUser}</if>
+            <if test="createTime != null">and create_time = #{createTime}</if>
+            <if test="updateUser != null and updateUser != ''">and update_user = #{updateUser}</if>
+            <if test="updateTime != null">and update_time = #{updateTime}</if>
+            <if test="remark != null and remark != ''">and remark = #{remark}</if>
+        </where>
+        order by order_id, assignee_version, assignee_order
+    </select>
+
+    <select id="getFirstAssigneeByOrderId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="BASE_COLUMNS"/>
+        FROM wo_assignee
+        WHERE order_id = #{orderId}
+        ORDER BY order_id, assignee_version DESC, assignee_order
+        LIMIT 1
+    </select>
+
+    <select id="getByOrderIdVersionOrder" resultMap="BaseResultMap">
+        SELECT
+        <include refid="BASE_COLUMNS"/>
+        FROM wo_assignee
+        WHERE order_id = #{orderId} and assignee_version = #{assigneeVersion} and assignee_order = #{assigneeOrder}
+    </select>
+
+    <select id="selectLatestVersionByOrderId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="BASE_COLUMNS"/>
+        FROM wo_assignee
+        WHERE order_id = #{orderId}
+        AND assignee_version = (SELECT MAX(assignee_version) FROM wo_assignee where order_id = #{orderId})
+    </select>
+
+    <select id="selectLatestVersionDTOByOrderId"
+            resultType="cn.gzsendi.flowable.model.dto.WorkOrderAssigneeDTO">
+        SELECT
+        woa.order_id,
+        woa.assignee_version,
+        woa.assignee,
+        u.user_name assignee_name,
+        woa.assignee_order,
+        woa.task_name,
+        woa.order_status,
+        os.name order_status_name,
+        woa.can_cancel_order,
+        woa.remark
+        FROM wo_assignee woa
+        LEFT JOIN sys_user u on u.user_id = woa.assignee
+        LEFT JOIN order_status os on os.id = woa.order_status
+        WHERE order_id = #{orderId}
+        AND assignee_version = (SELECT MAX(assignee_version) FROM wo_assignee where order_id = #{orderId})
+        order by assignee_order
+    </select>
+
+</mapper>

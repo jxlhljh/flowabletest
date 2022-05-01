@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.gzsendi.flowable.mapper.WorkFlowDefMapper">
+
+	<sql id="baseColumnList">
+		id,
+		order_type,
+		order_name,
+		order_id_prex,
+		remark,
+		create_time,
+		update_time
+	</sql>
+
+	<sql id="listSql">
+		select
+		<include refid="baseColumnList" />
+		from work_flow_def
+		<where>
+			<if test="orderType != null">and `order_type` = #{orderType}</if>
+		</where>
+	</sql>
+
+	<select id="list" parameterType="workFlowDef" resultType="workFlowDef" resultSetType="FORWARD_ONLY" fetchSize="-2147483648">
+		<include refid="listSql" />
+	</select>
+	
+	<select id="getById" resultType="workFlowDef" parameterType="java.lang.Integer">
+		select
+		<include refid="baseColumnList" />
+		from work_flow_def
+		where id = #{id}
+	</select>
+	
+	<select id="getByOrderIdPrex" resultType="workFlowDef" parameterType="java.lang.String">
+		select
+		*
+		from work_flow_def
+		where order_id_prex = #{orderIdPrex}
+	</select>
+	
+	<select id="getByOrderType" resultType="workFlowDef" parameterType="java.lang.String">
+		select
+		*
+		from work_flow_def
+		where order_type = #{orderType}
+	</select>
+	
+    <insert id="insert" parameterType="workFlowDef" keyProperty="id" useGeneratedKeys="true">
+		insert into work_flow_def(order_type,order_name,order_id_prex,remark)
+		values(#{orderType},#{orderName},#{orderIdPrex},#{remark})
+	</insert>
+	
+	<update id="update" parameterType="workFlowDef" >
+    	update work_flow_def
+     	<trim prefix="set" suffixOverrides=",">
+			<if test="orderType != null">order_type = #{orderType},</if>
+			<if test="orderName != null">order_name = #{orderName},</if>
+			<if test="orderIdPrex != null">order_id_prex = #{orderIdPrex},</if>
+			<if test="remark != null">remark = #{remark},</if>
+		 </trim>
+    	where id = #{id}
+  	</update>
+
+    <delete id="delete" parameterType="java.util.List">
+		delete from work_flow_def where 
+		id in
+	    <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">#{item}</foreach>
+	</delete>
+
+</mapper>
